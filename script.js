@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     const monsterImages = [
-        "level1","level2","level3","level4","level5","level6","level7","level8","level9","level10","level11","level12","level13","level14","level15"
+        "level1.png","level2.png","level3.png","level4.png","level5.png","level6","level7","level8","level9","level10","level11","level12","level13","level14","level15"
     ];
 
     // Audio files
