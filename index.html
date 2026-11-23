@@ -1,58 +1,133 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="SHIHT-JIS">
-    <meta name="viewport" content="width=deサインインwidth, initial-scale=1.0">
-    <title>関数クイズゲーム</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>関数クイズゲーム | Function Guessing Game</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <link rel="stylesheet" href="styles.css">
+
+    <!-- defer: KaTeX → script.js の順に実行される -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="script.js"></script>
 </head>
 <body>
+    <!-- 背景の装飾（数式シンボル） -->
+    <div class="bg-symbols" aria-hidden="true">
+        <span style="--x:6%;  --y:14%; --d:0s">∫</span>
+        <span style="--x:84%; --y:10%; --d:-4s">π</span>
+        <span style="--x:12%; --y:70%; --d:-8s">sin x</span>
+        <span style="--x:78%; --y:66%; --d:-2s">x²</span>
+        <span style="--x:46%; --y:5%;  --d:-10s">∑</span>
+        <span style="--x:90%; --y:40%; --d:-6s">cos x</span>
+        <span style="--x:3%;  --y:42%; --d:-12s">√x</span>
+        <span style="--x:55%; --y:85%; --d:-5s">f(x)</span>
+    </div>
+
+    <!-- ① タイトル -->
     <div id="start-screen" class="screen">
-        <h1>Function Guessing Game</h1>
-        <button id="start-button">スタート</button>
+        <div class="hero">
+            <p class="eyebrow">Mathematical Battle Quest</p>
+            <h1 class="game-title">
+                <span>Function</span>
+                <span>Guessing Game</span>
+            </h1>
+            <div class="ornament" aria-hidden="true"><span>✦</span></div>
+            <p class="hero-sub">グラフを読み解き、数式でモンスターを討て</p>
+            <button id="start-button" class="btn btn-primary btn-lg">スタート</button>
+            <ul class="rules">
+                <li><b>01</b>グラフから関数式を見抜く</li>
+                <li><b>02</b>正解でモンスターにダメージ</li>
+                <li><b>03</b>3回間違えるとゲームオーバー</li>
+            </ul>
+        </div>
     </div>
 
+    <!-- ② モンスター選択 -->
     <div id="select-screen" class="screen hidden">
-        <h2>モンスターを選択してください</h2>
-        <div id="monster-grid"></div>
-        <button id="title-button-select" class="title-button">タイトルに戻る</button>
+        <div class="select-shell">
+            <div class="select-bar">
+                <div>
+                    <p class="eyebrow">Choose Your Opponent</p>
+                    <h2 class="section-title">モンスターを選択してください</h2>
+                </div>
+                <button id="title-button-select" class="btn btn-ghost">タイトルに戻る</button>
+            </div>
+            <div id="monster-grid"></div>
+        </div>
     </div>
 
-    <div id="game-screen" class="screen hidden">
-        <div id="top-info">
-            <div id="stage-info">クイズ<span id="current-stage">1</span></div>
-            <div id="hp-info">
-                <span id="heart-icon">問目 MyHP</span>＝<span id="player-hp">3</span>
-            </div>
-            <button id="title-button-game" class="title-button">タイトルに戻る</button>
-            <button id="select-button-game" class="title-button">セレクト画面に戻る</button>
-        </div>
-        <div id="game-content">
-            <div id="left-side">
-                <div id="monster-container">
-                    <div id="monster-image"></div>
-                    <div id="monster-hp">モンスターHP: <span id="monster-hp-value">10</span></div>
+    <!-- ③ ゲーム画面 -->
+    <div id="game-screen" class="screen hidden" data-tier="1">
+        <div class="game-shell">
+            <header class="game-header">
+                <div class="stat">
+                    <span class="stat-label">Question</span>
+                    <span id="current-stage" class="stat-value">01</span>
                 </div>
-                <div id="choices-list"></div>
-            </div>
-            <div id="right-side">
-                <div id="graph-container">
-                    <canvas id="graph" width="400" height="300"></canvas>
+                <div class="stat">
+                    <span class="stat-label">My HP</span>
+                    <div id="player-hearts" class="hearts" aria-hidden="true"></div>
+                    <span id="player-hp" class="stat-value stat-value--sm">3</span>
                 </div>
-            </div>
+                <div class="header-actions">
+                    <button id="select-button-game" class="btn btn-ghost btn-sm">セレクト画面に戻る</button>
+                    <button id="title-button-game" class="btn btn-ghost btn-sm">タイトルに戻る</button>
+                </div>
+            </header>
+
+            <main class="game-main">
+                <section class="panel monster-panel">
+                    <div class="monster-stage">
+                        <div class="monster-sprite">
+                            <div id="monster-image" role="img" aria-label="モンスター"></div>
+                        </div>
+                        <span id="damage-pop" class="damage-pop" aria-hidden="true"></span>
+                    </div>
+                    <div class="monster-info">
+                        <span id="monster-level" class="level-chip">Lv 1</span>
+                        <div id="monster-hp" class="hp-block">
+                            <div class="hp-meta">
+                                <span class="stat-label">Monster HP</span>
+                                <span class="hp-num"><span id="monster-hp-value">10</span><small>/ 10</small></span>
+                            </div>
+                            <div class="hp-bar" role="progressbar" aria-label="モンスターHP" aria-valuemin="0" aria-valuemax="10" aria-valuenow="10">
+                                <div id="monster-hp-fill" class="hp-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="quiz-panel" class="panel quiz-panel">
+                    <p id="question">
+                        <span class="q-mark">Q.</span>
+                        <span>このグラフの関数式 <span class="math-inline" data-tex="y=f(x)">y=f(x)</span> は、次のうちどれ？</span>
+                    </p>
+                    <div class="graph-frame">
+                        <canvas id="graph" width="560" height="448" aria-label="関数のグラフ"></canvas>
+                    </div>
+                    <div id="choices-list"></div>
+                    <div id="feedback" role="status" aria-live="polite"></div>
+                </section>
+            </main>
         </div>
-        <div id="question">Q.右図の関数式は次のうちどれ？</div>
-        <div id="feedback"></div>
+        <div id="damage-flash" aria-hidden="true"></div>
     </div>
 
-    <div id="end-screen" class="screen hidden">
+    <!-- ④ 結果画面 -->
+    <div id="end-screen" class="screen hidden" data-result="clear">
+        <div class="end-glow" aria-hidden="true"></div>
+        <p id="end-eyebrow" class="eyebrow"></p>
         <h1 id="end-message"></h1>
+        <div class="ornament" aria-hidden="true"><span>✦</span></div>
         <div id="end-buttons">
-            <button id="title-button-end">タイトルに戻る</button>
-            <button id="select-button-end">セレクト画面に戻る</button>
+            <button id="title-button-end" class="btn btn-ghost">タイトルに戻る</button>
+            <button id="select-button-end" class="btn btn-primary">セレクト画面に戻る</button>
         </div>
     </div>
-
-    <script src="script.js"></script>
 </body>
 </html>
